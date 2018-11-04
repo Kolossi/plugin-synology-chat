@@ -1,18 +1,18 @@
 <?php
 
-namespace Kanboard\Plugin\Slack\Notification;
+namespace Kanboard\Plugin\SynologyChat\Notification;
 
 use Kanboard\Core\Base;
 use Kanboard\Core\Notification\NotificationInterface;
 use Kanboard\Model\TaskModel;
 
 /**
- * Slack Notification
+ * Synology Chat Notification
  *
  * @package  notification
- * @author   Frederic Guillot
+ * @author   Paul Sweeney
  */
-class Slack extends Base implements NotificationInterface
+class SynologyChat extends Base implements NotificationInterface
 {
     /**
      * Send notification to a user
@@ -24,19 +24,18 @@ class Slack extends Base implements NotificationInterface
      */
     public function notifyUser(array $user, $eventName, array $eventData)
     {
-        $webhook = $this->userMetadataModel->get($user['id'], 'slack_webhook_url', $this->configModel->get('slack_webhook_url'));
-        $channel = $this->userMetadataModel->get($user['id'], 'slack_webhook_channel');
+        $webhook = $this->userMetadataModel->get($user['id'], 'synology_chat_webhook_url', $this->configModel->get('synology_chat_webhook_url'));
 
         if (! empty($webhook)) {
             if ($eventName === TaskModel::EVENT_OVERDUE) {
                 foreach ($eventData['tasks'] as $task) {
                     $project = $this->projectModel->getById($task['project_id']);
                     $eventData['task'] = $task;
-                    $this->sendMessage($webhook, $channel, $project, $eventName, $eventData);
+                    $this->sendMessage($webhook, $project, $eventName, $eventData);
                 }
             } else {
                 $project = $this->projectModel->getById($eventData['task']['project_id']);
-                $this->sendMessage($webhook, $channel, $project, $eventName, $eventData);
+                $this->sendMessage($webhook, $project, $eventName, $eventData);
             }
         }
     }
@@ -51,11 +50,10 @@ class Slack extends Base implements NotificationInterface
      */
     public function notifyProject(array $project, $eventName, array $eventData)
     {
-        $webhook = $this->projectMetadataModel->get($project['id'], 'slack_webhook_url', $this->configModel->get('slack_webhook_url'));
-        $channel = $this->projectMetadataModel->get($project['id'], 'slack_webhook_channel');
+        $webhook = $this->projectMetadataModel->get($project['id'], 'synology_chat_webhook_url', $this->configModel->get('synology_chat_webhook_url'));
 
         if (! empty($webhook)) {
-            $this->sendMessage($webhook, $channel, $project, $eventName, $eventData);
+            $this->sendMessage($webhook, $project, $eventName, $eventData);
         }
     }
 
@@ -87,15 +85,13 @@ class Slack extends Base implements NotificationInterface
             $message .= '|'.t('view the task on Kanboard').'>';
         }
 
-        return array(
-            'text' => $message,
-            'username' => 'Kanboard',
-            'icon_url' => 'https://raw.githubusercontent.com/kanboard/kanboard/master/assets/img/favicon.png',
+        return 'payload' => array(
+            'text' => $message
         );
     }
 
     /**
-     * Send message to Slack
+     * Send message to Synology Chat
      *
      * @access protected
      * @param  string    $webhook
@@ -104,13 +100,9 @@ class Slack extends Base implements NotificationInterface
      * @param  string    $eventName
      * @param  array     $eventData
      */
-    protected function sendMessage($webhook, $channel, array $project, $eventName, array $eventData)
+    protected function sendMessage($webhook, array $project, $eventName, array $eventData)
     {
         $payload = $this->getMessage($project, $eventName, $eventData);
-
-        if (! empty($channel)) {
-            $payload['channel'] = $channel;
-        }
 
         $this->httpClient->postJsonAsync($webhook, $payload);
     }

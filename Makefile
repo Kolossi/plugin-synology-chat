@@ -1,4 +1,4 @@
-plugin=Slack
+plugin=SynologyChat
 
 all:
 	@ echo "Build archive for plugin ${plugin} version=${version}"

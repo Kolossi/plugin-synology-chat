@@ -1,26 +1,26 @@
 <?php
 
-namespace Kanboard\Plugin\Slack;
+namespace Kanboard\Plugin\SynologyChat;
 
 use Kanboard\Core\Translator;
 use Kanboard\Core\Plugin\Base;
 
 /**
- * Slack Plugin
+ * Synology Chat Plugin
  *
- * @package  slack
- * @author   Frederic Guillot
+ * @package  Synology Chat
+ * @author   Paul Sweeney
  */
 class Plugin extends Base
 {
     public function initialize()
     {
-        $this->template->hook->attach('template:config:integrations', 'slack:config/integration');
-        $this->template->hook->attach('template:project:integrations', 'slack:project/integration');
-        $this->template->hook->attach('template:user:integrations', 'slack:user/integration');
+        $this->template->hook->attach('template:config:integrations', 'synologyChat:config/integration');
+        $this->template->hook->attach('template:project:integrations', 'synologyChat:project/integration');
+        $this->template->hook->attach('template:user:integrations', 'synologyChat:user/integration');
 
-        $this->userNotificationTypeModel->setType('slack', t('Slack'), '\Kanboard\Plugin\Slack\Notification\Slack');
-        $this->projectNotificationTypeModel->setType('slack', t('Slack'), '\Kanboard\Plugin\Slack\Notification\Slack');
+        $this->userNotificationTypeModel->setType('synologyChat', t('SynologyChat'), '\Kanboard\Plugin\SynologyChat\Notification\SynologyChat');
+        $this->projectNotificationTypeModel->setType('synologyChat', t('SynologyChat'), '\Kanboard\Plugin\SynologyChat\Notification\SynologyChat');
     }
 
     public function onStartup()
@@ -30,22 +30,22 @@ class Plugin extends Base
 
     public function getPluginDescription()
     {
-        return 'Receive notifications on Slack';
+        return 'Receive notifications on Synology Chat';
     }
 
     public function getPluginAuthor()
     {
-        return 'Frédéric Guillot';
+        return 'Paul Sweeney';
     }
 
     public function getPluginVersion()
     {
-        return '1.0.7';
+        return '0.1.0';
     }
 
     public function getPluginHomepage()
     {
-        return 'https://github.com/kanboard/plugin-slack';
+        return 'https://github.com/Kolossi/plugin-synology-chat';
     }
 
     public function getCompatibleVersion()
