@@ -24,7 +24,7 @@ class SynologyChat extends Base implements NotificationInterface
      */
     public function notifyUser(array $user, $eventName, array $eventData)
     {
-        $webhook = $this->userMetadataModel->get($user['id'], 'synology_chat_webhook_url', $this->configModel->get('synology_chat_webhook_url'));
+        $webhook = $this->userMetadataModel->get($user['id'], 'synologychat_webhook_url', $this->configModel->get('synologychat_webhook_url'));
 
         if (! empty($webhook)) {
             if ($eventName === TaskModel::EVENT_OVERDUE) {
@@ -50,7 +50,7 @@ class SynologyChat extends Base implements NotificationInterface
      */
     public function notifyProject(array $project, $eventName, array $eventData)
     {
-        $webhook = $this->projectMetadataModel->get($project['id'], 'synology_chat_webhook_url', $this->configModel->get('synology_chat_webhook_url'));
+        $webhook = $this->projectMetadataModel->get($project['id'], 'synologychat_webhook_url', $this->configModel->get('synologychat_webhook_url'));
 
         if (! empty($webhook)) {
             $this->sendMessage($webhook, $project, $eventName, $eventData);
