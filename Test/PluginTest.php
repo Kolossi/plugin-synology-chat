@@ -2,7 +2,7 @@
 
 require_once 'tests/units/Base.php';
 
-use Kanboard\Plugin\SynologyChat\Notification;
+use Kanboard\Plugin\SynologyChat\Plugin;
 
 class PluginTest extends Base
 {

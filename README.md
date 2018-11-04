@@ -32,7 +32,8 @@ Configuration
 
 To use this plugin, you must have access to a [Synology NAS](https://www.synology.com/products) with the [Chat package](https://www.synology.com/en-global/dsm/feature/chat) installed.
 
-Firstly, you have to generate a new webhook url in Synology Chat (**click Profile Avatar top right > Integration > Incoming Webhooks**)
+Firstly, you have to generate a new webhook url in Synology Chat :
+- (**click Profile Avatar top right > Integration > Incoming Webhooks**)
 
 You can define only one webhook url (**Settings > Integrations > Synology Chat**) to apply to all, and optionally override with a different webhook for each project and user.
 
