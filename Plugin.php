@@ -19,8 +19,8 @@ class Plugin extends Base
         $this->template->hook->attach('template:project:integrations', 'synologyChat:project/integration');
         $this->template->hook->attach('template:user:integrations', 'synologyChat:user/integration');
 
-        $this->userNotificationTypeModel->setType('synologychat', t('SynologyChat'), '\Kanboard\Plugin\SynologyChat\Notification\SynologyChat');
-        $this->projectNotificationTypeModel->setType('synologychat', t('SynologyChat'), '\Kanboard\Plugin\SynologyChat\Notification\SynologyChat');
+        $this->userNotificationTypeModel->setType('synologyChat', t('SynologyChat'), '\Kanboard\Plugin\SynologyChat\Notification\SynologyChat');
+        $this->projectNotificationTypeModel->setType('synologyChat', t('SynologyChat'), '\Kanboard\Plugin\SynologyChat\Notification\SynologyChat');
     }
 
     public function onStartup()
