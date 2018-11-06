@@ -85,9 +85,9 @@ class SynologyChat extends Base implements NotificationInterface
             $message .= '|'.t('view the task on Kanboard').'>';
         }
 
-        return 'payload' => array(
-            'text' => $message
-        );
+        $payload = array('payload' => json_encode(array('text' => $message)));
+
+        return $payload;
     }
 
     /**
@@ -104,6 +104,6 @@ class SynologyChat extends Base implements NotificationInterface
     {
         $payload = $this->getMessage($project, $eventName, $eventData);
 
-        $this->httpClient->postJsonAsync($webhook, $payload);
+        $this->httpClient->postFormAsync($webhook, $payload);
     }
 }
