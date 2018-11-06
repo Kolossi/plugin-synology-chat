@@ -25,17 +25,18 @@ class SynologyChat extends Base implements NotificationInterface
     public function notifyUser(array $user, $eventName, array $eventData)
     {
         $webhook = $this->userMetadataModel->get($user['id'], 'synologychat_webhook_url', $this->configModel->get('synologychat_webhook_url'));
+        $includeLink = $this->userMetadataModel->get($user['id'], 'synologychat_include_link', $this->configModel->get('synologychat_include_link', false));
 
         if (! empty($webhook)) {
             if ($eventName === TaskModel::EVENT_OVERDUE) {
                 foreach ($eventData['tasks'] as $task) {
                     $project = $this->projectModel->getById($task['project_id']);
                     $eventData['task'] = $task;
-                    $this->sendMessage($webhook, $project, $eventName, $eventData);
+                    $this->sendMessage($webhook, $includeLink, $project, $eventName, $eventData);
                 }
             } else {
                 $project = $this->projectModel->getById($eventData['task']['project_id']);
-                $this->sendMessage($webhook, $project, $eventName, $eventData);
+                $this->sendMessage($webhook, $includeLink, $project, $eventName, $eventData);
             }
         }
     }
@@ -51,9 +52,10 @@ class SynologyChat extends Base implements NotificationInterface
     public function notifyProject(array $project, $eventName, array $eventData)
     {
         $webhook = $this->projectMetadataModel->get($project['id'], 'synologychat_webhook_url', $this->configModel->get('synologychat_webhook_url'));
+        $includeLink = $this->projectMetadataModel->get($project['id'], 'synologychat_include_link', $this->configModel->get('synologychat_include_link', false));
 
         if (! empty($webhook)) {
-            $this->sendMessage($webhook, $project, $eventName, $eventData);
+            $this->sendMessage($webhook, $includeLink, $project, $eventName, $eventData);
         }
     }
 
@@ -64,9 +66,10 @@ class SynologyChat extends Base implements NotificationInterface
      * @param  array     $project
      * @param  string    $eventName
      * @param  array     $eventData
+     * @param  bool      $includeLink
      * @return array
      */
-    public function getMessage(array $project, $eventName, array $eventData)
+    public function getMessage(array $project, $eventName, array $eventData, $includeLink)
     {
         if ($this->userSession->isLogged()) {
             $author = $this->helper->user->getFullname();
@@ -79,7 +82,7 @@ class SynologyChat extends Base implements NotificationInterface
         $message .= $title;
         $message .= ' ('.$eventData['task']['title'].')';
 
-        if ($this->configModel->get('application_url') !== '') {
+        if ($includeLink && $this->configModel->get('application_url') !== '') {
             $message .= ' - <';
             $message .= $this->helper->url->to('TaskViewController', 'show', array('task_id' => $eventData['task']['id'], 'project_id' => $project['id']), '', true);
             $message .= '|'.t('view the task on Kanboard').'>';
@@ -95,14 +98,14 @@ class SynologyChat extends Base implements NotificationInterface
      *
      * @access protected
      * @param  string    $webhook
-     * @param  string    $channel
+     * @param  bool      $includeLink
      * @param  array     $project
      * @param  string    $eventName
      * @param  array     $eventData
      */
-    protected function sendMessage($webhook, array $project, $eventName, array $eventData)
+    protected function sendMessage($webhook, $includeLink, array $project, $eventName, array $eventData)
     {
-        $payload = $this->getMessage($project, $eventName, $eventData);
+        $payload = $this->getMessage($project, $eventName, $eventData, $includeLink);
 
         $this->httpClient->postFormAsync($webhook, $payload);
     }
