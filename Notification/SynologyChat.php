@@ -25,7 +25,7 @@ class SynologyChat extends Base implements NotificationInterface
     public function notifyUser(array $user, $eventName, array $eventData)
     {
         $webhook = $this->userMetadataModel->get($user['id'], 'synologychat_webhook_url', $this->configModel->get('synologychat_webhook_url'));
-        $includeLink = $this->userMetadataModel->get($user['id'], 'synologychat_include_link', $this->configModel->get('synologychat_include_link', false));
+        $includeLink = $this->userMetadataModel->get($user['id'], 'synologychat_include_link', $this->configModel->get('synologychat_include_link', 0));
 
         if (! empty($webhook)) {
             if ($eventName === TaskModel::EVENT_OVERDUE) {
@@ -52,7 +52,7 @@ class SynologyChat extends Base implements NotificationInterface
     public function notifyProject(array $project, $eventName, array $eventData)
     {
         $webhook = $this->projectMetadataModel->get($project['id'], 'synologychat_webhook_url', $this->configModel->get('synologychat_webhook_url'));
-        $includeLink = $this->projectMetadataModel->get($project['id'], 'synologychat_include_link', $this->configModel->get('synologychat_include_link', false));
+        $includeLink = $this->projectMetadataModel->get($project['id'], 'synologychat_include_link', $this->configModel->get('synologychat_include_link', 0));
 
         if (! empty($webhook)) {
             $this->sendMessage($webhook, $includeLink, $project, $eventName, $eventData);
@@ -82,7 +82,7 @@ class SynologyChat extends Base implements NotificationInterface
         $message .= $title;
         $message .= ' ('.$eventData['task']['title'].')';
 
-        if ($includeLink && $this->configModel->get('application_url') !== '') {
+        if ($includeLink == 1 && $this->configModel->get('application_url') !== '') {
             $message .= ' - <';
             $message .= $this->helper->url->to('TaskViewController', 'show', array('task_id' => $eventData['task']['id'], 'project_id' => $project['id']), '', true);
             $message .= '|'.t('view the task on Kanboard').'>';
@@ -105,8 +105,34 @@ class SynologyChat extends Base implements NotificationInterface
      */
     protected function sendMessage($webhook, $includeLink, array $project, $eventName, array $eventData)
     {
+        $backoffRetries = 0;
+        $tryAgain = false;
+
         $payload = $this->getMessage($project, $eventName, $eventData, $includeLink);
 
-        $this->httpClient->postFormAsync($webhook, $payload);
+        do
+        {
+            $tryAgain = false;
+            $body = $this->httpClient->postForm($webhook, $payload);
+            
+            if ($body !== '')
+            {
+                $response = json_decode($body, true);
+                if (isset($response['success']) && $response['success']==false)
+                {
+                    // Synology Chat API as of v2.1.0-1228 will only accept a fairly low rate of submission, 
+                    // and if it's too fast, it returns
+                    // {"error":{"code":411,"errors":"create post too fast"},"success":false} 
+                    if (isset($response['error']) && isset($response['error']['code']) && $response['error']['code'] == 411)
+                    {
+                        $tryAgain = true;
+                        $backoffRetries += 1;
+
+                        //back off for between 0-0.1 secs, adding 0.1 each retry
+                        usleep(($backoffRetries-1)*100000 + rand(0,100000));
+                    }
+                }
+            }
+        } while ($tryAgain);
     }
 }
